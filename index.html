@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>District Treasures of India</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .card {
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+    }
+    .modal {
+      transform: scale(0.7);
+      opacity: 0;
+      transition: transform 0.3s ease, opacity 0.3s ease;
+    }
+    .modal.show {
+      transform: scale(1);
+      opacity: 1;
+    }
+    .overlay {
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    .overlay.show {
+      opacity: 0.7;
+    }
+    .loading {
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    .card-img, .modal-img {
+      position: relative;
+      display: block;
+    }
+    .img-fallback {
+      display: none;
+      text-align: center;
+      color: #666;
+      font-size: 0.875rem;
+      background: #f3f4f6;
+      height: 100%;
+      align-items: center;
+      justify-content: center;
+    }
+    @media (max-width: 768px) {
+      .sidebar {
+        display: none;
+      }
+      .sidebar.show {
+        display: block;
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 100%;
+        z-index: 50;
+        background: white;
+        padding: 1rem;
+        box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+      }
+      .hamburger {
+        display: block;
+      }
+    }
+  </style>
+</head>
+<body class="bg-gray-100 font-sans">
+  <header class="bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-6 shadow-md">
+    <div class="container mx-auto flex justify-between items-center">
+      <h1 class="text-3xl font-bold">District Treasures of India</h1>
+      <button class="hamburger md:hidden text-white text-2xl" onclick="toggleSidebar()">☰</button>
+    </div>
+    <div class="container mx-auto mt-4">
+      <select id="stateSelect" class="w-full md:w-1/3 p-3 rounded-lg bg-white text-gray-800 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500" aria-label="Select a state or union territory">
+        <option value="">Select a State/UT</option>
+        <option value="Andhra Pradesh">Andhra Pradesh</option>
+        <option value="Arunachal Pradesh">Arunachal Pradesh</option>
+        <option value="Assam">Assam</option>
+        <option value="Bihar">Bihar</option>
+        <option value="Chhattisgarh">Chhattisgarh</option>
+        <option value="Goa">Goa</option>
+        <option value="Gujarat">Gujarat</option>
+        <option value="Haryana">Haryana</option>
+        <option value="Himachal Pradesh">Himachal Pradesh</option>
+        <option value="Jharkhand">Jharkhand</option>
+        <option value="Karnataka">Karnataka</option>
+        <option value="Kerala">Kerala</option>
+        <option value="Madhya Pradesh">Madhya Pradesh</option>
+        <option value="Maharashtra">Maharashtra</option>
+        <option value="Manipur">Manipur</option>
+        <option value="Meghalaya">Meghalaya</option>
+        <option value="Mizoram">Mizoram</option>
+        <option value="Nagaland">Nagaland</option>
+        <option value="Odisha">Odisha</option>
+        <option value="Punjab">Punjab</option>
+        <option value="Rajasthan">Rajasthan</option>
+        <option value="Sikkim">Sikkim</option>
+        <option value="Tamil Nadu">Tamil Nadu</option>
+        <option value="Telangana">Telangana</option>
+        <option value="Tripura">Tripura</option>
+        <option value="Uttar Pradesh">Uttar Pradesh</option>
+        <option value="Uttarakhand">Uttarakhand</option>
+        <option value="West Bengal">West Bengal</option>
+        <option value="Andaman and Nicobar Islands">Andaman and Nicobar Islands</option>
+        <option value="Chandigarh">Chandigarh</option>
+        <option value="Dadra and Nagar Haveli and Daman and Diu">Dadra and Nagar Haveli and Daman and Diu</option>
+        <option value="Delhi">Delhi</option>
+        <option value="Jammu and Kashmir">Jammu and Kashmir</option>
+        <option value="Ladakh">Ladakh</option>
+        <option value="Lakshadweep">Lakshadweep</option>
+        <option value="Puducherry">Puducherry</option>
+      </select>
+    </div>
+  </header>
+  <div class="container mx-auto flex flex-col md:flex-row mt-6 gap-6">
+    <aside class="sidebar w-full md:w-1/4 bg-white p-6 rounded-lg shadow-md">
+      <h3 class="text-xl font-semibold mb-4">Filters</h3>
+      <div class="mb-4">
+        <h4 class="font-semibold mb-2">Category</h4>
+        <label class="block mb-2"><input type="checkbox" class="filter-category accent-blue-500" value="Cuisine" checked aria-label="Filter by Cuisine" /> Cuisine</label>
+        <label class="block mb-2"><input type="checkbox" class="filter-category accent-blue-500" value="Handicraft" checked aria-label="Filter by Handicraft" /> Handicraft</label>
+        <label class="block mb-2"><input type="checkbox" class="filter-category accent-blue-500" value="Textile" checked aria-label="Filter by Textile" /> Textile</label>
+        <label class="block mb-2"><input type="checkbox" class="filter-category accent-blue-500" value="Spices" checked aria-label="Filter by Spices" /> Spices</label>
+        <label class="block mb-2"><input type="checkbox" class="filter-category accent-blue-500" value="Jewelry" checked aria-label="Filter by Jewelry" /> Jewelry</label>
+        <label class="block mb-2"><input type="checkbox" class="filter-category accent-blue-500" value="Festivals" checked aria-label="Filter by Festivals" /> Festivals</label>
+        <label class="block mb-2"><input type="checkbox" class="filter-category accent-blue-500" value="Agricultural Products" checked aria-label="Filter by Agricultural Products" /> Agricultural Products</label>
+      </div>
+      <div class="mb-4">
+        <h4 class="font-semibold mb-2">Demand</h4>
+        <label class="block mb-2"><input type="checkbox" class="filter-demand accent-blue-500" value="High" checked aria-label="Filter by High Demand" /> High</label>
+        <label class="block mb-2"><input type="checkbox" class="filter-demand accent-blue-500" value="Medium" checked aria-label="Filter by Medium Demand" /> Medium</label>
+        <label class="block mb-2"><input type="checkbox" class="filter-demand accent-blue-500" value="Low" checked aria-label="Filter by Low Demand" /> Low</label>
+      </div>
+      <div class="mb-4">
+        <h4 class="font-semibold mb-2">Availability</h4>
+        <label class="block mb-2"><input type="checkbox" class="filter-availability accent-blue-500" value="Available" checked aria-label="Filter by Available" /> Available</label>
+        <label class="block mb-2"><input type="checkbox" class="filter-availability accent-blue-500" value="Not Available" checked aria-label="Filter by Not Available" /> Not Available</label>
+      </div>
+      <div class="search-container mt-4">
+        <input type="text" id="searchInput" class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Search by item or district" aria-label="Search for items or districts" />
+        <div class="flex gap-2 mt-2">
+          <button onclick="updateDisplay()" class="bg-blue-500 text-white p-2 rounded-lg hover:bg-blue-600">Search</button>
+          <button onclick="clearSearch()" class="bg-gray-500 text-white p-2 rounded-lg hover:bg-gray-600">Clear</button>
+          <button onclick="resetFilters()" class="bg-gray-500 text-white p-2 rounded-lg hover:bg-gray-600">Reset Filters</button>
+        </div>
+      </div>
+      <div class="sort-container mt-4">
+        <label for="sortSelect" class="font-semibold">Sort By:</label>
+        <select id="sortSelect" class="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" aria-label="Sort items">
+          <option value="district-asc">District (A-Z)</option>
+          <option value="district-desc">District (Z-A)</option>
+          <option value="item-asc">Item (A-Z)</option>
+          <option value="item-desc">Item (Z-A)</option>
+          <option value="demand-desc">Demand (High to Low)</option>
+          <option value="demand-asc">Demand (Low to High)</option>
+        </select>
+      </div>
+      <div class="compare-container mt-4">
+        <label for="compareSelect" class="font-semibold">Compare State:</label>
+        <select id="compareSelect" class="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" aria-label="Select a state to compare">
+          <option value="">None</option>
+        </select>
+      </div>
+      <button onclick="exportToCSV()" class="bg-green-500 text-white p-2 rounded-lg mt-4 w-full hover:bg-green-600">Export to CSV</button>
+    </aside>
+    <main class="main w-full md:w-3/4 bg-white p-6 rounded-lg shadow-md" id="districtContainer" aria-live="polite">
+      <div class="loading hidden text-blue-500 text-center" id="loadingSpinner">
+        <svg class="inline-block w-8 h-8 animate-spin" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+        </svg>
+        Loading...
+      </div>
+      <div class="chart-type-container mb-4">
+        <label for="chartTypeSelect" class="font-semibold">Chart Type:</label>
+        <select id="chartTypeSelect" class="p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" aria-label="Select chart type">
+          <option value="bar">Bar</option>
+          <option value="pie">Pie</option>
+        </select>
+      </div>
+      <div class="flex flex-col md:flex-row gap-4 mb-6">
+        <canvas id="demandChart" class="max-w-md"></canvas>
+        <canvas id="categoryChart" class="max-w-md"></canvas>
+      </div>
+      <div id="cardContainer" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+    </main>
+  </div>
+  <div class="overlay fixed inset-0 bg-black opacity-0 hidden" id="modalOverlay"></div>
+  <div id="modal" class="modal fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white p-6 rounded-lg shadow-xl w-11/12 md:w-1/3 hidden" role="dialog" aria-labelledby="modalDistrict" aria-modal="true">
+    <h3 id="modalDistrict" class="text-xl font-semibold"></h3>
+    <div class="modal-img mt-2 w-full h-48 rounded-lg">
+      <img id="modalImage" class="w-full h-full object-cover rounded-lg" alt="" onerror="this.classList.add('hidden'); this.nextElementSibling.classList.add('flex')" />
+      <div class="img-fallback hidden h-full">Image not available</div>
+    </div>
+    <p id="modalItem" class="mt-2"></p>
+    <p id="modalCategory" class="mt-2"></p>
+    <p id="modalDemand" class="mt-2"></p>
+    <p id="modalAvailability" class="mt-2"></p>
+    <button onclick="closeModal()" class="bg-blue-500 text-white p-2 rounded-lg mt-4 w-full hover:bg-blue-600 focus:ring-2 focus:ring-blue-500" aria-label="Close modal">Close</button>
+  </div>
+
+  <script>
+    const data = {
+      "Andhra Pradesh": [
+        { district: "Visakhapatnam", item: "Araku Coffee", category: "Cuisine", demand: "High", available: true, image: "https://images.pexels.com/photos/312418/pexels-photo-312418.jpeg" },
+        { district: "Krishna", item: "Kalamkari Fabric", category: "Textile", demand: "Medium", available: true, image: "https://upload.wikimedia.org/wikipedia/commons/9/9a/Kalamkari_fabric.jpg" },
+        { district: "Guntur", item: "Guntur Chilli", category: "Spices", demand: "High", available: true, image: "https://images.pexels.com/photos/6849156/pexels-photo-6849156.jpeg" },
+        { district: "East Godavari", item: "Pochampally Saree", category: "Textile", demand: "Medium", available: true, image: "https://upload.wikimedia.org/wikipedia/commons/0/0b/Pochampally_Saree.jpg" },
+        { district: "Chittoor", item: "Mango", category: "Agricultural Products", demand: "High", available: true, image: "https://images.pexels.com/photos/2294471/pexels-photo-2294471.jpeg" }
+      ],
+      "Arunachal Pradesh": [
+        { district: "Tawang", item: "Tawang Handwoven Carpets", category: "Textile", demand: "Low", available: true, image: "https://images.pexels.com/photos/5998096/pexels-photo-5998096.jpeg" },
+        { district: "West Kameng", item: "Arunachali Yak Churpi", category: "Cuisine", demand: "Medium", available: true, image: "https://images.pexels.com/photos/3738730/pexels-photo-3738730.jpeg" }
+      ],
+      "Assam": [
+        { district: "Kamrup", item: "Assam Tea", category: "Agricultural Products", demand: "High", available: true, image: "https://images.pexels.com/photos/230477/pexels-photo-230477.jpeg" },
+        { district: "Sivasagar", item: "Muga Silk", category: "Textile", demand: "High", available: true, image: "https://upload.wikimedia.org/wikipedia/commons/8/8e/Muga_silk_saree.jpg" },
+        { district: "Dibrugarh", item: "Bihu Festival", category: "Festivals", demand: "Medium", available: true, image: "https://images.pexels.com/photos/3183186/pexels-photo-3183186.jpeg" },
+        { district: "Sonitpur", item: "Asharikandi Terracotta", category: "Handicraft", demand: "Medium", available: true, image: "https://images.pexels.com/photos/3772777/pexels-photo-3772777.jpeg" }
+      ],
+      "Bihar": [
+        { district: "Madhubani", item: "Madhubani Painting", category: "Handicraft", demand: "High", available: true, image: "https://upload.wikimedia.org/wikipedia/commons/8/82/Madhubani_painting.jpg" },
+        { district: "Patna", item: "Sattu", category: "Cuisine", demand: "Medium", available: true, image: "https://images.pexels.com/photos/3738730/pexels-photo-3738730.jpeg" },
+        { district: "Bhagalpur", item: "Bhagalpur Silk", category: "Textile", demand: "Medium", available: true, image: "https://upload.wikimedia.org/wikipedia/commons/2/2f/Bhagalpur_silk.jpg" }
+      ],
+      "Chhattisgarh": [
+        { district: "Bastar", item: "Bastar Iron Craft", category: "Handicraft", demand: "Medium", available: true, image: "https://images.pexels.com/photos/3772777/pexels-photo-3772777.jpeg" },
+        { district: "Raipur", item: "Kosa Silk", category: "Textile", demand: "High", available: true, image: "https://upload.wikimedia.org/wikipedia/commons/4/4c/Kosa_silk_saree.jpg" },
+        { district: "Korba", item: "Jeeraphool Rice", category: "Agricultural Products", demand: "Medium", available: true, image: "https://images.pexels.com/photos/2294471/pexels-photo-2294471.jpeg" }
+      ],
+      "Goa": [
+        { district: "North Goa", item: "Feni", category: "Cuisine", demand: "High", available: true, image: "https://images.pexels.com/photos/3738730/pexels-photo-3738730.jpeg" },
+        { district: "South Goa", item: "Carnival Festival", category: "Festivals", demand: "Medium", available: true, image: "https://images.pexels.com/photos/3183186/pexels-photo-3183186.jpeg" }
+      ],
+      "Gujarat": [
+        { district: "Kutch", item: "Kutchi Embroidery", category: "Textile", demand: "High", available: true, image: "https://upload.wikimedia.org/wikipedia/commons/2/2a/Kutchi_embroidery.jpg" },
+        { district: "Ahmedabad", item: "Dhal Garam", category: "Cuisine", demand: "Medium", available: true, image: "https://images.pexels.com/photos/3738730/pexels-photo-3738730.jpeg" },
+        { district: "Surat", item: "Zari Work", category: "Textile", demand: "High", available: true, image: "https://images.pexels.com/photos/5998096/pexels-photo-5998096.jpeg" },
+        { district: "Jamnagar", item: "Bandhani", category: "Textile", demand: "High", available: true, image: "https://upload.wikimedia.org/wikipedia/commons/3/3f/Bandhani_saree.jpg" }
+      ],
+      "Haryana": [
+        { district: "Kurukshetra", item: "Phulkari Embroidery", category: "Textile", demand: "Medium", available: true, image: "https://upload.wikimedia.org/wikipedia/commons/5/5d/Phulkari_embroidery.jpg" },
+        { district: "Gurugram", item: "Jalebi", category: "Cuisine", demand: "High", available: true, image: "https://images.pexels.com/photos/3738730/pexels-photo-3738730.jpeg" },
+        { district: "Faridabad", item: "Brassware", category: "Handicraft", demand: "Medium", available: true, image: "https://images.pexels.com/photos/3772777/pexels-photo-3772777.jpeg" }
+      ],
+      "Himachal Pradesh": [
+        { district: "Kullu", item: "Kullu Shawl", category: "Textile", demand: "High", available: true, image: "https://upload.wikimedia.org/wikipedia/commons/6/6b/Kullu_shawl.jpg" },
+        { district: "Shimla", item: "Apple", category: "Agricultural Products", demand: "High", available: true, image: "https://images.pexels.com/photos/2294471/pexels-photo-2294471.jpeg" },
+        { district: "Kangra", item: "Kangra Tea", category: "Agricultural Products", demand: "Medium", available: true, image: "https://images.pexels.com/photos/230477/pexels-photo-230477.jpeg" }
+      ],
+      "Jharkhand": [
+        { district: "Ranchi", item: "Sohrai Painting", category: "Handicraft", demand: "Medium", available: true, image: "https://images.pexels.com/photos/3772777/pexels-photo-3772777.jpeg" },
+        { district: "East Singhbhum", item: "Tussar Silk", category: "Textile", demand: "High", available: true, image: "https://upload.wikimedia.org/wikipedia/commons/7/7a/Tussar_silk.jpg" }
+      ],
+      "Karnataka": [
+        { district: "Mysore", item: "Mysore Silk", category: "Textile", demand: "High", available: true, image: "https://upload.wikimedia.org/wikipedia/commons/9/9e/Mysore_silk_saree.jpg" },
+        { district: "Bangalore", item: "Filter Coffee", category: "Cuisine", demand: "High", available: true, image: "https://images.pexels.com/photos/312418/pexels-photo-312418.jpeg" },
+        { district: "Udupi", item: "Udupi Masala", category: "Spices", demand: "Medium", available: true, image: "https://images.pexels.com/photos/6849156/pexels-photo-6849156.jpeg" },
+        { district: "Dharwad", item: "Dharwad Peda", category: "Cuisine", demand: "High", available: true, image: "https://images.pexels.com/photos/3738730/pexels-photo-3738730.jpeg" }
+      ],
+      "Kerala": [
+        { district: "Alappuzha", item: "Coir Mats", category: "Handicraft", demand: "Medium", available: true, image: "https://images.pexels.com/photos/3772777/pexels-photo-3772777.jpeg" },
+        { district: "Kottayam", item: "Kerala Banana Chips", category: "Cuisine", demand: "High", available: true, image: "https://images.pexels.com/photos/3738730/pexels-photo-3738730.jpeg" },
+        { district: "Thrissur", item: "Onam Festival", category: "Festivals", demand: "High", available: true, image: "https://images.pexels.com/photos/3183186/pexels-photo-3183186.jpeg" },
+        { district: "Ernakulam", item: "Pokkali Rice", category: "Agricultural Products", demand: "Medium", available: true, image: "https://images.pexels.com/photos/2294471/pexels-photo-2294471.jpeg" }
+      ],
+      "Madhya Pradesh": [
+        { district: "Chanderi", item: "Chanderi Saree", category: "Textile", demand: "High", available: true, image: "https://upload.wikimedia.org/wikipedia/commons/1/1f/Chanderi_saree.jpg" },
+        { district: "Bhopal", item: "Zari Zardozi", category: "Handicraft", demand: "Medium", available: true, image: "https://images.pexels.com/photos/3772777/pexels-photo-3772777.jpeg" },
+        { district: "Indore", item: "Leather Toys", category: "Handicraft", demand: "Medium", available: true, image: "https://images.pexels.com/photos/3772777/pexels-photo-3772777.jpeg" }
+      ],
+      "Maharashtra": [
+        { district: "Kolhapur", item: "Kolhapuri Chappal", category: "Handicraft", demand: "High", available: true, image: "https://upload.wikimedia.org/wikipedia/commons/2/2c/Kolhapuri_chappal.jpg" },
+        { district: "Pune", item: "Vada Pav", category: "Cuisine", demand: "High", available: true, image: "https://images.pexels.com/photos/3738730/pexels-photo-3738730.jpeg" },
+        { district: "Nagpur", item: "Orange", category: "Agricultural Products", demand: "High", available: true, image: "https://images.pexels.com/photos/2294471/pexels-photo-2294471.jpeg" },
+        { district: "Nashik", item: "Grapes", category: "Agricultural Products", demand: "High", available: true, image: "https://images.pexels.com/photos/2294471/pexels-photo-2294471.jpeg" },
+        { district: "Raigad", item: "Alibag White Onion", category: "Agricultural Products", demand: "Medium", available: true, image: "https://images.pexels.com/photos/2294471/pexels-photo-2294471.jpeg" }
+      ],
+      "Manipur": [
+        { district: "Imphal East", item: "Manipuri Dance", category: "Festivals", demand: "Medium", available: true, image: "https://images.pexels.com/photos/3183186/pexels-photo-3183186.jpeg" },
+        { district: "Imphal West", item: "Phanek", category: "Textile", demand: "Medium", available: true, image: "https://upload.wikimedia.org/wikipedia/commons/4/4e/Manipuri_phanek.jpg" },
+        { district: "Chandel", item: "Kachai Lemon", category: "Agricultural Products", demand: "Medium", available: true, image: "https://images.pexels.com/photos/2294471/pexels-photo-2294471.jpeg" }
+      ],
+      "Meghalaya": [
+        { district: "East Khasi Hills", item: "Khasi Bamboo Craft", category: "Handicraft", demand: "Medium", available: true, image: "https://images.pexels.com/photos/3772777/pexels-photo-3772777.jpeg" },
+        { district: "Shillong", item: "Pineapple", category: "Agricultural Products", demand: "High", available: true, image: "https://images.pexels.com/photos/2294471/pexels-photo-2294471.jpeg" }
+      ],
+      "Mizoram": [
+        { district: "Aizawl", item: "Mizo Puan", category: "Textile", demand: "Medium", available: true, image: "https://images.pexels.com/photos/5998096/pexels-photo-5998096.jpeg" },
+        { district: "Lunglei", item: "Bamboo Products", category: "Handicraft", demand: "Low", available: true, image: "https://images.pexels.com/photos/3772777/pexels-photo-3772777.jpeg" }
+      ],
+      "Nagaland": [
+        { district: "Kohima", item: "Naga Shawl", category: "Textile", demand: "High", available: true, image: "https://upload.wikimedia.org/wikipedia/commons/9/9f/Naga_shawl.jpg" },
+        { district: "Dimapur", item: "Hornbill Festival", category: "Festivals", demand: "High", available: true, image: "https://images.pexels.com/photos/3183186/pexels-photo-3183186.jpeg" }
+      ],
+      "Odisha": [
+        { district: "Cuttack", item: "Silver Filigree", category: "Handicraft", demand: "Medium", available: true, image: "https://upload.wikimedia.org/wikipedia/commons/5/5a/Cuttack_silver_filigree.jpg" },
+        { district: "Puri", item: "Rath Yatra", category: "Festivals", demand: "High", available: true, image: "https://images.pexels.com/photos/3183186/pexels-photo-3183186.jpeg" },
+        { district: "Mayurbhanj", item: "Similipal Kai Chutney", category: "Cuisine", demand: "Medium", available: true, image: "https://images.pexels.com/photos/3738730/pexels-photo-3738730.jpeg" },
+        { district: "Rayagada", item: "Dongria Kondh Shawl", category: "Textile", demand: "Medium", available: true, image: "https://images.pexels.com/photos/5998096/pexels-photo-5998096.jpeg" }
+      ],
+      "Punjab": [
+        { district: "Amritsar", item: "Amritsari Kulcha", category: "Cuisine", demand: "High", available: true, image: "https://images.pexels.com/photos/3738730/pexels-photo-3738730.jpeg" },
+        { district: "Ludhiana", item: "Phulkari", category: "Textile", demand: "High", available: true, image: "https://upload.wikimedia.org/wikipedia/commons/5/5d/Phulkari_embroidery.jpg" },
+        { district: "Patiala", item: "Patiala Jutti", category: "Handicraft", demand: "Medium", available: true, image: "https://upload.wikimedia.org/wikipedia/commons/3/3e/Patiala_jutti.jpg" }
+      ],
+      "Rajasthan": [
+        { district: "Jaipur", item: "Blue Pottery", category: "Handicraft", demand: "High", available: true, image: "https://upload.wikimedia.org/wikipedia/commons/7/7b/Blue_pottery_jaipur.jpg" },
+        { district: "Udaipur", item: "Lac Bangles", category: "Jewelry", demand: "Medium", available: true, image: "https://images.pexels.com/photos/3772777/pexels-photo-3772777.jpeg" },
+        { district: "Jodhpur", item: "Mojari", category: "Handicraft", demand: "Medium", available: true, image: "https://upload.wikimedia.org/wikipedia/commons/2/2d/Jodhpur_mojari.jpg" },
+        { district: "Bikaner", item: "Bikaneri Bhujia", category: "Cuisine", demand: "High", available: true, image: "https://images.pexels.com/photos/3738730/pexels-photo-3738730.jpeg" }
+      ],
+      "Sikkim": [
+        { district: "Gangtok", item: "Sikkim Tea", category: "Agricultural Products", demand: "Medium", available: true, image: "https://images.pexels.com/photos/230477/pexels-photo-230477.jpeg" },
+        { district: "Namchi", item: "Thangka Painting", category: "Handicraft", demand: "Low", available: true, image: "https://upload.wikimedia.org/wikipedia/commons/1/1e/Thangka_painting.jpg" }
+      ],
+      "Tamil Nadu": [
+        { district: "Kancheepuram", item: "Kanchipuram Silk", category: "Textile", demand: "High", available: true, image: "https://upload.wikimedia.org/wikipedia/commons/4/4a/Kanchipuram_silk_saree.jpg" },
+        { district: "Madurai", item: "Jasmine Flowers", category: "Agricultural Products", demand: "High", available: true, image: "https://images.pexels.com/photos/2294471/pexels-photo-2294471.jpeg" },
+        { district: "Chennai", item: "Pongal Festival", category: "Festivals", demand: "High", available: true, image: "https://images.pexels.com/photos/3183186/pexels-photo-3183186.jpeg" },
+        { district: "Thanjavur", item: "Thanjavur Painting", category: "Handicraft", demand: "Medium", available: true, image: "https://upload.wikimedia.org/wikipedia/commons/6/6f/Thanjavur_painting.jpg" }
+      ],
+      "Telangana": [
+        { district: "Hyderabad", item: "Hyderabadi Biryani", category: "Cuisine", demand: "High", available: true, image: "https://images.pexels.com/photos/3738730/pexels-photo-3738730.jpeg" },
+        { district: "Warangal", item: "Pembarthi Metal Craft", category: "Handicraft", demand: "Medium", available: true, image: "https://images.pexels.com/photos/3772777/pexels-photo-3772777.jpeg" },
+        { district: "Nizamabad", item: "Tandur Redgram", category: "Agricultural Products", demand: "Medium", available: true, image: "https://images.pexels.com/photos/2294471/pexels-photo-2294471.jpeg" }
+      ],
+      "Tripura": [
+        { district: "Agartala", item: "Bamboo Handicrafts", category: "Handicraft", demand: "Medium", available: true, image: "https://images.pexels.com/photos/3772777/pexels-photo-3772777.jpeg" },
+        { district: "Udaipur", item: "Tripuri Risa", category: "Textile", demand: "Low", available: true, image: "https://images.pexels.com/photos/5998096/pexels-photo-5998096.jpeg" }
+      ],
+      "Uttar Pradesh": [
+        { district: "Varanasi", item: "Banarasi Saree", category: "Textile", demand: "High", available: true, image: "https://upload.wikimedia.org/wikipedia/commons/5/5e/Banarasi_saree.jpg" },
+        { district: "Lucknow", item: "Chikankari Embroidery", category: "Textile", demand: "High", available: true, image: "https://upload.wikimedia.org/wikipedia/commons/8/8c/Chikankari_embroidery.jpg" },
+        { district: "Agra", item: "Marble Inlay", category: "Handicraft", demand: "Medium", available: true, image: "https://upload.wikimedia.org/wikipedia/commons/3/3a/Agra_marble_inlay.jpg" },
+        { district: "Amroha", item: "Amroha Dholak", category: "Handicraft", demand: "Medium", available: true, image: "https://images.pexels.com/photos/3772777/pexels-photo-3772777.jpeg" },
+        { district: "Banaras", item: "Banaras Thandai", category: "Cuisine", demand: "High", available: true, image: "https://images.pexels.com/photos/3738730/pexels-photo-3738730.jpeg" }
+      ],
+      "Uttarakhand": [
+        { district: "Dehradun", item: "Basmati Rice", category: "Agricultural Products", demand: "High", available: true, image: "https://images.pexels.com/photos/2294471/pexels-photo-2294471.jpeg" },
+        { district: "Almora", item: "Aipan Art", category: "Handicraft", demand: "Medium", available: true, image: "https://images.pexels.com/photos/3772777/pexels-photo-3772777.jpeg" }
+      ],
+      "West Bengal": [
+        { district: "Darjeeling", item: "Darjeeling Tea", category: "Agricultural Products", demand: "High", available: true, image: "https://images.pexels.com/photos/230477/pexels-photo-230477.jpeg" },
+        { district: "Kolkata", item: "Bengali Sweets", category: "Cuisine", demand: "High", available: true, image: "https://images.pexels.com/photos/3738730/pexels-photo-3738730.jpeg" },
+        { district: "Murshidabad", item: "Baluchari Saree", category: "Textile", demand: "Medium", available: true, image: "https://upload.wikimedia.org/wikipedia/commons/9/9b/Baluchari_saree.jpg" },
+        { district: "Bankura", item: "Bankura Terracotta", category: "Handicraft", demand: "Medium", available: true, image: "https://upload.wikimedia.org/wikipedia/commons/4/4e/Bankura_terracotta.jpg" }
+      ],
+      "Andaman and Nicobar Islands": [
+        { district: "South Andaman", item: "Shell Crafts", category: "Handicraft", demand: "Medium", available: true, image: "https://images.pexels.com/photos/3772777/pexels-photo-3772777.jpeg" }
+      ],
+      "Chandigarh": [
+        { district: "Chandigarh", item: "Punjabi Jutti", category: "Handicraft", demand: "Medium", available: true, image: "https://upload.wikimedia.org/wikipedia/commons/3/3e/Patiala_jutti.jpg" }
+      ],
+      "Dadra and Nagar Haveli and Daman and Diu": [
+        { district: "Daman", item: "Leather Footwear", category: "Handicraft", demand: "Low", available: true, image: "https://images.pexels.com/photos/3772777/pexels-photo-3772777.jpeg" }
+      ],
+      "Delhi": [
+        { district: "South Delhi", item: "Meenakari Jewelry", category: "Jewelry", demand: "High", available: true, image: "https://upload.wikimedia.org/wikipedia/commons/2/2f/Meenakari_jewelry.jpg" }
+      ],
+      "Jammu and Kashmir": [
+        { district: "Srinagar", item: "Pashmina Shawl", category: "Textile", demand: "High", available: true, image: "https://upload.wikimedia.org/wikipedia/commons/7/7e/Pashmina_shawl.jpg" },
+        { district: "Jammu", item: "Kashmiri Saffron", category: "Spices", demand: "High", available: true, image: "https://images.pexels.com/photos/6849156/pexels-photo-6849156.jpeg" },
+        { district: "Kathua", item: "Basohli Painting", category: "Handicraft", demand: "Medium", available: true, image: "https://images.pexels.com/photos/3772777/pexels-photo-3772777.jpeg" }
+      ],
+      "Ladakh": [
+        { district: "Leh", item: "Pashmina Wool", category: "Textile", demand: "Medium", available: true, image: "https://upload.wikimedia.org/wikipedia/commons/7/7e/Pashmina_shawl.jpg" },
+        { district: "Kargil", item: "RaktseyKarpo Apricot", category: "Agricultural Products", demand: "Medium", available: true, image: "https://images.pexels.com/photos/2294471/pexels-photo-2294471.jpeg" }
+      ],
+      "Lakshadweep": [
+        { district: "Kavaratti", item: "Coconut Shell Crafts", category: "Handicraft", demand: "Low", available: true, image: "https://images.pexels.com/photos/3772777/pexels-photo-3772777.jpeg" }
+      ],
+      "Puducherry": [
+        { district: "Puducherry", item: "Pondicherry Pottery", category: "Handicraft", demand: "Medium", available: true, image: "https://images.pexels.com/photos/3772777/pexels-photo-3772777.jpeg" }
+      ]
+    };
+
+    const stateSelect = document.getElementById("stateSelect");
+    const districtContainer = document.getElementById("districtContainer");
+    const cardContainer = document.getElementById("cardContainer");
+    const categoryFilters = document.querySelectorAll(".filter-category");
+    const demandFilters = document.querySelectorAll(".filter-demand");
+    const availabilityFilters = document.querySelectorAll(".filter-availability");
+    const searchInput = document.getElementById("searchInput");
+    const sortSelect = document.getElementById("sortSelect");
+    const chartTypeSelect = document.getElementById("chartTypeSelect");
+    const compareSelect = document.getElementById("compareSelect");
+    const modal = document.getElementById("modal");
+    const modalOverlay = document.getElementById("modalOverlay");
+    const loadingSpinner = document.getElementById("loadingSpinner");
+    let demandChartInstance = null;
+    let categoryChartInstance = null;
+    let debounceTimeout;
+    let cachedFilteredData = [];
+    let isLoading = false;
+    let lastIndex = 0;
+    const itemsPerLoad = 6;
+
+    // Populate compareSelect
+    stateSelect.querySelectorAll("option").forEach(opt => {
+      if (opt.value) {
+        const option = document.createElement("option");
+        option.value = opt.value;
+        option.textContent = opt.textContent;
+        compareSelect.appendChild(option);
+      }
+    });
+
+    // Event Listeners
+    stateSelect.addEventListener("change", () => updateDisplay(true));
+    categoryFilters.forEach(f => f.addEventListener("change", () => updateDisplay(true)));
+    demandFilters.forEach(f => f.addEventListener("change", () => updateDisplay(true)));
+    availabilityFilters.forEach(f => f.addEventListener("change", () => updateDisplay(true)));
+    searchInput.addEventListener("input", () => {
+      clearTimeout(debounceTimeout);
+      debounceTimeout = setTimeout(() => updateDisplay(true), 300);
+    });
+    sortSelect.addEventListener("change", () => updateDisplay(true));
+    chartTypeSelect.addEventListener("change", () => updateDisplay(false));
+    compareSelect.addEventListener("change", () => updateDisplay(false));
+
+    // IntersectionObserver for Infinite Scroll
+    const observer = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting && !isLoading && lastIndex < cachedFilteredData.length) {
+        loadMoreItems();
+      }
+    }, { rootMargin: "100px" });
+
+    function toggleSidebar() {
+      const sidebar = document.querySelector(".sidebar");
+      sidebar.classList.toggle("show");
+    }
+
+    function closeModal() {
+      modal.classList.remove("show");
+      modalOverlay.classList.remove("show");
+      setTimeout(() => {
+        modal.style.display = "none";
+        modalOverlay.style.display = "none";
+        stateSelect.focus();
+      }, 300);
+    }
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && modal.style.display === "block") {
+        closeModal();
+      }
+    });
+
+    modal.addEventListener("keydown", (e) => {
+      if (e.key === "Tab") {
+        e.preventDefault();
+        modal.querySelector("button").focus();
+      }
+    });
+
+    function clearSearch() {
+      searchInput.value = "";
+      categoryFilters.forEach(f => f.checked = true);
+      demandFilters.forEach(f => f.checked = true);
+      availabilityFilters.forEach(f => f.checked = true);
+      sortSelect.value = "district-asc";
+      chartTypeSelect.value = "bar";
+      compareSelect.value = "";
+      updateDisplay(true);
+    }
+
+    function resetFilters() {
+      categoryFilters.forEach(f => f.checked = true);
+      demandFilters.forEach(f => f.checked = true);
+      availabilityFilters.forEach(f => f.checked = true);
+      searchInput.value = "";
+      sortSelect.value = "district-asc";
+      chartTypeSelect.value = "bar";
+      updateDisplay(true);
+    }
+
+    function exportToCSV() {
+      if (!cachedFilteredData || cachedFilteredData.length === 0) {
+        alert("No data to export!");
+        return;
+      }
+      const csvRows = ["District,Item,Category,Demand,Availability"];
+      cachedFilteredData.forEach(entry => {
+        csvRows.push(`${entry.district},${entry.item},${entry.category},${entry.demand},${entry.available ? "Available" : "Not Available"}`);
+      });
+      const csv = csvRows.join("\n");
+      const blob = new Blob([csv], { type: "text/csv" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `treasures_${stateSelect.value || "all"}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function loadMoreItems() {
+      isLoading = true;
+      loadingSpinner.classList.remove("hidden");
+      setTimeout(() => {
+        const fragment = document.createDocumentFragment();
+        const endIndex = Math.min(lastIndex + itemsPerLoad, cachedFilteredData.length);
+        const itemsToLoad = cachedFilteredData.slice(lastIndex, endIndex);
+        
+        itemsToLoad.forEach(entry => {
+          const card = document.createElement("div");
+          card.className = `card bg-white p-4 rounded-lg shadow-md border border-gray-200 ${entry.demand.toLowerCase()}`;
+          card.tabIndex = 0;
+          card.setAttribute("role", "button");
+          card.setAttribute("aria-label", `View details for ${entry.item} in ${entry.district}`);
+          card.innerHTML = `
+            <div class="card-img w-full h-32 rounded-lg">
+              <img src="${entry.image}" class="w-full h-full object-cover rounded-lg" alt="${entry.item}" onerror="this.classList.add('hidden'); this.nextElementSibling.classList.add('flex')" />
+              <div class="img-fallback hidden h-full">Image not available</div>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-800 mt-2">${entry.district}</h3>
+            <p class="text-gray-600">${entry.item}</p>
+            <div class="status flex gap-2 mt-2">
+              <span class="px-2 py-1 rounded text-sm ${
+                entry.demand === "High" ? "bg-green-100 text-green-800" :
+                entry.demand === "Medium" ? "bg-yellow-100 text-yellow-800" :
+                "bg-red-100 text-red-800"
+              }">${entry.demand} Demand</span>
+              <span class="px-2 py-1 rounded text-sm ${
+                entry.available ? "bg-blue-100 text-blue-800" : "bg-red-100 text-red-800"
+              }">${entry.available ? "Available" : "Not Available"}</span>
+            </div>
+          `;
+          card.addEventListener("click", () => {
+            document.getElementById("modalDistrict").textContent = entry.district;
+            document.getElementById("modalImage").src = entry.image;
+            document.getElementById("modalImage").alt = entry.item;
+            document.getElementById("modalImage").classList.remove("hidden");
+            document.getElementById("modalImage").nextElementSibling.classList.remove("flex");
+            document.getElementById("modalItem").textContent = `Item: ${entry.item}`;
+            document.getElementById("modalCategory").textContent = `Category: ${entry.category}`;
+            document.getElementById("modalDemand").textContent = `Demand: ${entry.demand}`;
+            document.getElementById("modalAvailability").textContent = `Availability: ${entry.available ? "Available" : "Not Available"}`;
+            modal.style.display = "block";
+            modalOverlay.style.display = "block";
+            modal.classList.add("show");
+            modalOverlay.classList.add("show");
+            modal.querySelector("button").focus();
+          });
+          card.addEventListener("keypress", (e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              card.click();
+            }
+          });
+          fragment.appendChild(card);
+        });
+
+        cardContainer.appendChild(fragment);
+        lastIndex = endIndex;
+        isLoading = false;
+        loadingSpinner.classList.add("hidden");
+
+        // Observe the last card for infinite scroll
+        const cards = cardContainer.querySelectorAll(".card");
+        if (cards.length > 0) {
+          observer.unobserve(cards[cards.length - 1]);
+          observer.observe(cards[cards.length - 1]);
+        }
+      }, 300);
+    }
+
+    function updateDisplay(resetScroll = false) {
+      const state = stateSelect.value;
+      const compareState = compareSelect.value;
+      const activeCategories = Array.from(categoryFilters).filter(f => f.checked).map(f => f.value);
+      const activeDemands = Array.from(demandFilters).filter(f => f.checked).map(f => f.value);
+      const activeAvailabilities = Array.from(availabilityFilters).filter(f => f.checked).map(f => f.value);
+      const searchTerm = searchInput.value.toLowerCase();
+      const chartType = chartTypeSelect.value;
+
+      loadingSpinner.classList.remove("hidden");
+      cardContainer.innerHTML = "";
+      if (resetScroll) lastIndex = 0;
+
+      setTimeout(() => {
+        cachedFilteredData = state && data[state] ? data[state].filter(entry =>
+          activeCategories.includes(entry.category) &&
+          activeDemands.includes(entry.demand) &&
+          activeAvailabilities.includes(entry.available ? "Available" : "Not Available") &&
+          (entry.item.toLowerCase().includes(searchTerm) || entry.district.toLowerCase().includes(searchTerm))
+        ) : [];
+
+        const compareData = compareState && data[compareState] ? data[compareState].filter(entry =>
+          activeCategories.includes(entry.category) &&
+          activeDemands.includes(entry.demand) &&
+          activeAvailabilities.includes(entry.available ? "Available" : "Not Available") &&
+          (entry.item.toLowerCase().includes(searchTerm) || entry.district.toLowerCase().includes(searchTerm))
+        ) : [];
+
+        const chartData = compareState ? [...cachedFilteredData, ...compareData] : cachedFilteredData;
+
+        const demandOrder = { High: 1, Medium: 2, Low: 3 };
+        cachedFilteredData.sort((a, b) => {
+          const sortOption = sortSelect.value;
+          if (sortOption === "district-asc") return a.district.localeCompare(b.district);
+          if (sortOption === "district-desc") return b.district.localeCompare(a.district);
+          if (sortOption === "item-asc") return a.item.localeCompare(b.item);
+          if (sortOption === "item-desc") return b.item.localeCompare(a.item);
+          if (sortOption === "demand-desc") return demandOrder[a.demand] - demandOrder[b.demand];
+          if (sortOption === "demand-asc") return demandOrder[b.demand] - demandOrder[a.demand];
+          return 0;
+        });
+
+        // Render Charts
+        if (demandChartInstance) demandChartInstance.destroy();
+        if (categoryChartInstance) categoryChartInstance.destroy();
+
+        const ctxDemand = document.getElementById("demandChart").getContext("2d");
+        const ctxCategory = document.getElementById("categoryChart").getContext("2d");
+        const demandCounts = { High: 0, Medium: 0, Low: 0 };
+        const categoryCounts = {
+          Cuisine: 0, Handicraft: 0, Textile: 0, Spices: 0,
+          Jewelry: 0, Festivals: 0, "Agricultural Products": 0
+        };
+
+        chartData.forEach(entry => {
+          demandCounts[entry.demand]++;
+          categoryCounts[entry.category]++;
+        });
+
+        if (chartData.length === 0) {
+          cardContainer.innerHTML = `<p class="text-gray-600 text-center">No results found for the selected filters or search term.</p>`;
+          loadingSpinner.classList.add("hidden");
+          return;
+        }
+
+        demandChartInstance = new Chart(ctxDemand, {
+          type: chartType,
+          data: {
+            labels: compareState ? [`${state} High`, `${state} Medium`, `${state} Low`, `${compareState} High`, `${compareState} Medium`, `${compareState} Low`] : ["High", "Medium", "Low"],
+            datasets: compareState ? [
+              {
+                label: state,
+                data: [demandCounts.High / 2, demandCounts.Medium / 2, demandCounts.Low / 2],
+                backgroundColor: ["#34d399", "#fcd34d", "#f87171"],
+                borderColor: ["#059669", "#d97706", "#dc2626"],
+                borderWidth: 1
+              },
+              {
+                label: compareState,
+                data: [demandCounts.High / 2, demandCounts.Medium / 2, demandCounts.Low / 2],
+                backgroundColor: ["#6ee7b7", "#fef08a", "#fca5a5"],
+                borderColor: ["#047857", "#b45309", "#b91c1c"],
+                borderWidth: 1
+              }
+            ] : [{
+              label: "Item Demand Levels",
+              data: [demandCounts.High, demandCounts.Medium, demandCounts.Low],
+              backgroundColor: ["#34d399", "#fcd34d", "#f87171"],
+              borderColor: ["#059669", "#d97706", "#dc2626"],
+              borderWidth: 1
+            }]
+          },
+          options: {
+            responsive: true,
+            scales: chartType === "bar" ? {
+              y: { beginAtZero: true, title: { display: true, text: "Number of Items" } },
+              x: { title: { display: true, text: "Demand Level" } }
+            } : {},
+            plugins: {
+              legend: { display: chartType === "pie" || compareState },
+              title: { display: true, text: `Demand Levels in ${state}${compareState ? ` vs ${compareState}` : ""}` },
+              tooltip: { enabled: true }
+            }
+          }
+        });
+
+        categoryChartInstance = new Chart(ctxCategory, {
+          type: "pie",
+          data: {
+            labels: Object.keys(categoryCounts),
+            datasets: [{
+              label: "Category Distribution",
+              data: Object.values(categoryCounts),
+              backgroundColor: ["#34d399", "#fcd34d", "#f87171", "#60a5fa", "#a78bfa", "#f472b6", "#4ade80"],
+              borderColor: ["#059669", "#d97706", "#dc2626", "#2563eb", "#7c3aed", "#db2777", "#16a34a"],
+              borderWidth: 1
+            }]
+          },
+          options: {
+            responsive: true,
+            plugins: {
+              legend: { position: "top" },
+              title: { display: true, text: `Category Distribution in ${state}${compareState ? ` vs ${compareState}` : ""}` },
+              tooltip: { enabled: true }
+            }
+          }
+        });
+
+        // Load initial items
+        loadMoreItems();
+
+        // Show no state message
+        if (!state) {
+          cardContainer.innerHTML = `<p class="text-gray-600 text-center">Please select a state or union territory to view treasures.</p>`;
+          loadingSpinner.classList.add("hidden");
+        }
+      }, 300);
+    }
+
+    window.onload = function() {
+      stateSelect.value = "Maharashtra";
+      updateDisplay(true);
+    };
+  </script>
+</body>
+</html>
